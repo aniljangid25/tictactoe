@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>tictactoe.io</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #0d0d2b;
+            color: #fff;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        h1 {
+            font-size: 50px;
+            margin-bottom: 30px;
+            font-family: 'Arial', sans-serif;
+            color: #00f5ff;
+            text-shadow: 0 0 20px #00f5ff, 0 0 40px #00f5ff, 0 0 60px #00f5ff;
+        }
+        button {
+            background-color: #00f5ff;
+            color: #fff;
+            border: none;
+            padding: 12px 24px;
+            font-size: 20px;
+            cursor: pointer;
+            margin: 10px;
+            border-radius: 10px;
+            transition: all 0.3s ease-in-out;
+            text-shadow: 0 0 10px #00f5ff, 0 0 20px #00f5ff;
+        }
+        button:hover {
+            background-color: #0088cc;
+            transform: scale(1.1);
+            box-shadow: 0 0 15px #00f5ff, 0 0 30px #0088cc;
+        }
+        #game-board {
+            display: grid;
+            grid-template-columns: repeat(3, 120px);
+            grid-template-rows: repeat(3, 120px);
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .cell {
+            width: 120px;
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            background-color: #0a0a1d;
+            border: 2px solid #1a1a33;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            text-shadow: 0 0 10px #00f5ff, 0 0 20px #00f5ff;
+        }
+        .cell.X {
+            color: #00f5ff;
+        }
+        .cell.O {
+            color: #00bfff;
+        }
+        .cell:hover {
+            background-color: #1a1a33;
+            transform: scale(1.1);
+            box-shadow: 0 0 10px #00f5ff, 0 0 20px #00bfff;
+        }
+        #result {
+            font-size: 30px;
+            font-weight: bold;
+            color: #fff;
+            margin-top: 20px;
+        }
+        .celebration {
+            font-size: 70px;
+            color: #00f5ff;
+            animation: explosion 1s ease-out forwards;
+        }
+        @keyframes explosion {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.5);
+                opacity: 0.7;
+            }
+            100% {
+                transform: scale(2);
+                opacity: 0;
+            }
+        }
+        #retry-button {
+            background-color: #00f5ff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 18px;
+            margin-top: 30px;
+            border-radius: 12px;
+            cursor: pointer;
+            text-shadow: 0 0 10px #00f5ff, 0 0 20px #00f5ff;
+            display: none;
+        }
+        #retry-button:hover {
+            background-color: #0088cc;
+            transform: scale(1.1);
+            box-shadow: 0 0 15px #00f5ff, 0 0 30px #0088cc;
+        }
+    </style>
+</head>
+<body>
+
+<h1>tictactoe.io</h1>
+
+<!-- Option buttons to select playing mode -->
+<button onclick="startGame('player')">Play with Player</button>
+<button onclick="startGame('computer')">Play with Computer</button>
+
+<!-- Game Board -->
+<div id="game-board"></div>
+
+<!-- Display winner message -->
+<p id="result"></p>
+
+<!-- Retry Button -->
+<button id="retry-button" onclick="retryGame()">Retry</button>
+
+<script>
+    let board = [];
+    let currentPlayer = 'X';
+    let gameMode = '';
+    let gameOver = false;
+
+    function startGame(mode) {
+        gameMode = mode;
+        board = [
+            [' ', ' ', ' '],
+            [' ', ' ', ' '],
+            [' ', ' ', ' ']
+        ];
+        currentPlayer = 'X';
+        gameOver = false;
+        document.getElementById('result').textContent = '';
+        document.getElementById('retry-button').style.display = 'none';
+        document.getElementById('game-board').innerHTML = '';
+        
+        // Create grid cells
+        for (let i = 0; i < 9; i++) {
+            let cell = document.createElement('div');
+            cell.classList.add('cell');
+            cell.dataset.index = i;
+            cell.onclick = () => makeMove(i);
+            document.getElementById('game-board').appendChild(cell);
+        }
+    }
+
+    function makeMove(index) {
+        if (gameOver) return;
+        
+        let row = Math.floor(index / 3);
+        let col = index % 3;
+        
+        if (board[row][col] !== ' ') return;
+
+        board[row][col] = currentPlayer;
+        updateBoard();
+
+        if (checkWinner(currentPlayer)) {
+            if (currentPlayer === 'X') {
+                document.getElementById('result').textContent = currentPlayer + ' Wins!';
+                document.getElementById('result').classList.add('celebration');
+            } else {
+                document.getElementById('result').textContent = currentPlayer + ' Wins!';
+            }
+            gameOver = true;
+            document.getElementById('retry-button').style.display = 'block';
+            return;
+        }
+
+        currentPlayer = (currentPlayer === 'X') ? 'O' : 'X';
+        
+        if (gameMode === 'computer' && currentPlayer === 'O' && !gameOver) {
+            setTimeout(computerMove, 500);
+        }
+    }
+
+    function updateBoard() {
+        const cells = document.querySelectorAll('.cell');
+        cells.forEach((cell, index) => {
+            let row = Math.floor(index / 3);
+            let col = index % 3;
+            cell.textContent = board[row][col];
+            cell.classList.remove('X', 'O');
+            if (board[row][col] !== ' ') {
+                cell.classList.add(board[row][col]);
+            }
+        });
+    }
+
+    function checkWinner(player) {
+        for (let i = 0; i < 3; i++) {
+            // Check rows, columns, diagonals
+            if (board[i][0] === player && board[i][1] === player && board[i][2] === player) return true;
+            if (board[0][i] === player && board[1][i] === player && board[2][i] === player) return true;
+        }
+        if (board[0][0] === player && board[1][1] === player && board[2][2] === player) return true;
+        if (board[0][2] === player && board[1][1] === player && board[2][0] === player) return true;
+        return false;
+    }
+
+    function computerMove() {
+        if (gameOver) return;
+        
+        let emptyCells = [];
+        for (let i = 0; i < 9; i++) {
+            let row = Math.floor(i / 3);
+            let col = i % 3;
+            if (board[row][col] === ' ') {
+                emptyCells.push(i);
+            }
+        }
+        
+        if (emptyCells.length === 0) {
+            document.getElementById('result').textContent = 'It\'s a Draw!';
+            gameOver = true;
+            document.getElementById('retry-button').style.display = 'block';
+            return;
+        }
+
+        let randomMove = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+        makeMove(randomMove);
+    }
+
+    function retryGame() {
+        startGame(gameMode);
+    }
+</script>
+
+</body>
+</html>
